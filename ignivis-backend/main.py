@@ -1,14 +1,34 @@
-from fastapi import FastAPI, UploadFile, File, Form, Depends, HTTPException, status
+from fastapi import FastAPI, UploadFile, File, Form, Depends, HTTPException, status, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from datetime import timedelta
 import random
 import time
+import cv2
+import numpy as np
 
 from database import engine, get_db
 import models
 import auth
+import os
+import joblib
+
+from utils.download_models import download_skin_model
+
+# Run Google Drive Downloader immediately upon boot
+download_skin_model()
+
+# Systematically load all ML Models statically into Server State Memory
+print("[Ignivis State] Loading ML Models into RAM...")
+MODELS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "models"))
+env_model = joblib.load(os.path.join(MODELS_DIR, "environment_model.joblib"))
+phys_model = joblib.load(os.path.join(MODELS_DIR, "heat_stress_model.joblib"))
+face_model = joblib.load(os.path.join(MODELS_DIR, "face_temp_fatigue_heatmap_model.joblib"))
+skin_model = joblib.load(os.path.join(MODELS_DIR, "stress_skin_model.joblib"))
+print("[Ignivis State] All Models Activated.")
 
 app = FastAPI(title="Ignivis API - AI Heat Stress Intelligence System")
 
@@ -24,23 +44,48 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    body = await request.body()
+    print(f"=== 422 VALIDATION ERROR ===")
+    print(f"Errors: {exc.errors()}")
+    print(f"Body Payload: {body.decode()}")
+    print(f"============================")
+    return JSONResponse(
+        status_code=422,
+        content={"detail": exc.errors(), "body": body.decode()}
+    )
+
 class EnvironmentRequest(BaseModel):
-    latitude: float | None = None
-    longitude: float | None = None
-    city: str | None = None
+    temp: float
+    humidity: float
+    uv: float
+    aqi: float
 
 class PhysiologicalRequest(BaseModel):
-    body_temperature: float
+    body_temp: float
     heart_rate: int
 
 class FinalScoreRequest(BaseModel):
+    env: float
+    phys: float
+    face: float
+    skin: float
+    sleep: int
+    water: float
+    age: int
+    gender: str
+
+class AiInsightsRequest(BaseModel):
+    final_score: float
     env_score: float
     phys_score: float
     face_score: float
+    skin_score: float
+    sleep: int
+    water: float
     age: int
     gender: str
-    water_intake: int
-    sleep_duration: int
 
 
 @app.get("/")
@@ -89,88 +134,87 @@ def login_for_access_token(user_cred: auth.UserCreate, db: Session = Depends(get
 
 @app.post("/api/environment")
 async def get_environment_score(req: EnvironmentRequest):
-    # Mocking ML model for environmental score based on location
-    # In reality, this would fetch weather data, AQI, UV, Temp, Humidity
-    time.sleep(1) # Simulate network/processing delay
-    score = random.uniform(20.0, 85.0)
-    return {
-        "env_score": round(score, 1),
-        "details": {
-            "temperature": round(random.uniform(25.0, 42.0), 1),
-            "humidity": random.randint(30, 90),
-            "aqi": random.randint(20, 150),
-            "uv_index": round(random.uniform(3.0, 11.0), 1)
-        }
-    }
+    windspeed = 5.0
+    features = np.array([[req.temp, req.humidity, windspeed, req.uv]])
+    score = float(env_model.predict(features)[0])
+    return { "env_score": round(score, 1) }
 
 @app.post("/api/physiological")
 async def get_physiological_score(req: PhysiologicalRequest):
-    # Mocking physiological stress score
-    time.sleep(0.5)
-    
-    # Base risk derived from inputs (simple heuristic for mock)
-    risk = 0
-    if req.body_temperature > 37.5:
-        risk += 30
-    if req.heart_rate > 100:
-        risk += 30
-        
-    score = min(100.0, risk + random.uniform(5.0, 20.0))
-    
-    return {
-        "phys_score": round(score, 1)
-    }
+    respiratory_rate = req.heart_rate / 4.0
+    spo2 = 96.0
+    features = np.array([[req.body_temp, req.heart_rate, respiratory_rate, spo2]])
+    score = float(phys_model.predict(features)[0])
+    return { "phys_score": round(score, 1) }
 
 @app.post("/api/face")
 async def analyze_face_stress(file: UploadFile = File(...)):
-    # Mocking OpenCV Face Stress Detection
-    time.sleep(2) # Simulate image processing
-    
-    # Randomly generate face stress score for mockup
-    score = random.uniform(10.0, 45.0)
-    
+    contents = await file.read()
+    nparr = np.frombuffer(contents, np.uint8)
+    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+    if img is None:
+        raise HTTPException(status_code=400, detail="Invalid image file")
+
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    cascade_path = cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
+    face_cascade = cv2.CascadeClassifier(cascade_path)
+    faces = face_cascade.detectMultiScale(gray, 1.1, 4)
+
+    if len(faces) == 0:
+        face_crop = gray
+    else:
+        x, y, w, h = faces[0]
+        face_crop = gray[y:y+h, x:x+w]
+
+    mean_val = float(np.mean(face_crop))
+    std_val = float(np.std(face_crop))
+    max_val = float(np.max(face_crop))
+    var_val = float(np.var(face_crop))
+
+    face_features = np.array([[mean_val, std_val, max_val]])
+    face_score = float(face_model.predict(face_features)[0])
+
+    skin_features = np.array([[mean_val, var_val]])
+    skin_score = float(skin_model.predict(skin_features)[0])
+
     return {
-        "face_score": round(score, 1),
-        "filename": file.filename
+        "face_score": round(face_score, 1),
+        "skin_score": round(skin_score, 1),
+        "face_temp": round(mean_val, 1)
     }
+
+@app.post("/api/ai-insights")
+def get_ai_insights(req: AiInsightsRequest):
+    from utils.ai_insights import generate_ai_insights
+    return generate_ai_insights(req.model_dump())
 
 @app.post("/api/final")
 async def get_final_score(req: FinalScoreRequest):
-    # Calculate final heat stress score
-    time.sleep(1)
+    base_score = (req.env * 0.3) + (req.phys * 0.4) + (req.face * 0.15) + (req.skin * 0.15)
     
-    # Simple weighted average for mock
-    base_score = (req.env_score * 0.4) + (req.phys_score * 0.4) + (req.face_score * 0.2)
-    
-    # Lifestyle adjustments
     lifestyle_modifier = 0
-    if req.water_intake < 2:
-        lifestyle_modifier += 15
-    elif req.water_intake >= 4:
-        lifestyle_modifier -= 10
+    if req.water < 2: lifestyle_modifier += 15
+    elif req.water >= 4: lifestyle_modifier -= 10
+    if req.sleep < 6: lifestyle_modifier += 10
         
-    if req.sleep_duration < 6:
-        lifestyle_modifier += 10
-        
-    final_score = base_score + lifestyle_modifier
-    final_score = max(0.0, min(100.0, final_score)) # Clamp between 0-100
+    final_score = max(0.0, min(100.0, base_score + lifestyle_modifier))
     
-    # Determine risk category
     if final_score < 40:
         risk_category = "Safe"
-        summary = "You are currently at a low risk of heat stress. Maintain your hydration levels."
+        summary = "Low risk of heat stress. Maintain hydration."
         alerts = []
         recommendations = ["Drink water periodically", "Wear light clothing"]
     elif final_score < 75:
         risk_category = "Moderate"
-        summary = "You are at moderate risk of heat stress. Elevated environmental or physiological indicators present."
+        summary = "Moderate risk. Elevated environmental or physiological indicators present."
         alerts = ["Risk of dehydration"]
-        recommendations = ["Drink 500ml of water immediately", "Seek a shaded or cool area", "Avoid strenuous physical activity"]
+        recommendations = ["Drink 500ml of water immediately", "Seek a shaded or cool area"]
     else:
         risk_category = "High"
-        summary = "You are at HIGH risk of heat stress! Immediate action is required."
-        alerts = ["Avoid outdoor exposure completely", "Elevated heart stress potential", "High risk of heat exhaustion"]
-        recommendations = ["Move to an air-conditioned room", "Drink electrolytes if possible", "Take rest immediately"]
+        summary = "HIGH risk of heat stress! Immediate action required."
+        alerts = ["Avoid outdoor exposure completely", "Elevated heat stress potential"]
+        recommendations = ["Move to an air-conditioned room", "Rest immediately"]
 
     return {
         "final_score": round(final_score, 1),

@@ -18,5 +18,5 @@ env/
 .env
 .pytest_cache/
 
-# Large Data files (Optional, keep if you want to push them)
-# air_quality.csv
+# Large Data files
+ignivis-backend/models/stress_skin_model.joblib
