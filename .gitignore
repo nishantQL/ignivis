@@ -1,0 +1,22 @@
+# IDE Settings
+.vscode/
+.idea/
+
+# Web / Frontend dependencies
+node_modules/
+.env
+dist/
+build/
+.DS_Store
+
+# Python / Backend
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.env
+.pytest_cache/
+
+# Large Data files (Optional, keep if you want to push them)
+# air_quality.csv
