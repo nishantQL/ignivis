@@ -124,28 +124,28 @@ Weather API → Environmental Processing → Environmental Score
 
 ## 🛠️ Technology Stack
 
-**Computer Vision**
+### **Frontend**
+- **Next.js 16.2** - React framework for production
+- **React 19.2** - UI library
+- **TypeScript** - Type-safe development
+- **Tailwind CSS** - Utility-first styling
+- **Framer Motion** - Smooth animations
+- **Recharts** - Data visualization
+- **Lucide React** - Icon library
+- **React Webcam** - Real-time video capture
 
-* OpenCV
-* MediaPipe
+### **Backend**
+- **FastAPI** - High-performance Python API framework
+- **Python** - Core programming language
 
-**Machine Learning**
+### **Computer Vision & ML**
+- **OpenCV** - Computer vision processing
+- **MediaPipe** - Real-time facial feature extraction
+- **Scikit-learn** - Machine learning models
+- **TensorFlow / PyTorch** - Deep learning frameworks
 
-* Python
-* Scikit-learn
-* TensorFlow / PyTorch
-
-**Backend**
-
-* FastAPI
-
-**Frontend**
-
-* Streamlit / React
-
-**Data Integration**
-
-* Weather API
+### **Data Integration**
+- **Weather API** - Real-time environmental data
 
 ---
 
