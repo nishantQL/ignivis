@@ -55,7 +55,7 @@ export default function DashboardPage() {
         const data = JSON.parse(storedData)
         
         // 1. Fetch Environment Score
-        const envRes = await fetch("http://localhost:8000/api/environment", {
+        const envRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/environment`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ latitude: data.latitude, longitude: data.longitude })
@@ -63,7 +63,7 @@ export default function DashboardPage() {
         const envData = await envRes.json()
         
         // 2. Fetch Physiological Score
-        const physRes = await fetch("http://localhost:8000/api/physiological", {
+        const physRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/physiological`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ body_temperature: data.bodyTemperature, heart_rate: data.heartRate })
@@ -83,7 +83,7 @@ export default function DashboardPage() {
         })
 
         // 4. Fetch Final Intelligence
-        const finalRes = await fetch("http://localhost:8000/api/final", {
+        const finalRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/final`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
