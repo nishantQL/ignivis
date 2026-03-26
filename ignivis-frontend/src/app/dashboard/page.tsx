@@ -6,7 +6,7 @@ import { MetricGauge } from "@/components/ui/MetricGauge"
 import { GlassCard } from "@/components/ui/GlassCard"
 import { Button } from "@/components/ui/Button"
 import { useRouter } from "next/navigation"
-import { AlertCircle, CheckCircle2, CloudLightning, Droplets, HeartPulse, ShieldAlert, BrainCircuit, ScanFace, MapPin } from "lucide-react"
+import { AlertCircle, CheckCircle2, CloudLightning, Droplets, HeartPulse, ShieldAlert, BrainCircuit, ScanFace, MapPin, Activity } from "lucide-react"
 
 // Expected backend response structure
 interface FinalResponse {
@@ -44,6 +44,7 @@ export default function DashboardPage() {
   })
 
   const [results, setResults] = useState<FinalResponse | null>(null)
+  const [history, setHistory] = useState<any[]>([])
 
   useEffect(() => {
     const loadAnalysis = async () => {
@@ -91,6 +92,20 @@ export default function DashboardPage() {
           recommendations: aiData.recommendations,
           action_plan: aiData.action_plan
         })
+
+        // Fetch User History
+        try {
+            const token = localStorage.getItem("ignivis_token");
+            const histRes = await fetch("http://localhost:8000/api/history", {
+            headers: { "Authorization": `Bearer ${token}` }
+          })
+          if (histRes.ok) {
+            const histData = await histRes.json()
+            setHistory(histData)
+          }
+        } catch (e) {
+          console.error("History fetch error", e)
+        }
 
       } catch (err) {
         console.error(err)
@@ -298,6 +313,40 @@ export default function DashboardPage() {
 
       </div>
 
+      {/* Historical Progress */}
+      {history.length > 0 && (
+        <GlassCard className="mt-8">
+          <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+             <Activity className="text-green-400 w-6 h-6" /> 
+             Historical Heat Risk Trend
+          </h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-white/10 text-foreground/60 text-sm">
+                  <th className="pb-3 px-4">Date</th>
+                  <th className="pb-3 px-4">Environment</th>
+                  <th className="pb-3 px-4">Physiology</th>
+                  <th className="pb-3 px-4">Vision & Skin</th>
+                  <th className="pb-3 px-4">Final Score</th>
+                </tr>
+              </thead>
+              <tbody>
+                {history.map((record) => (
+                  <tr key={record.id} className="border-b border-white/5 hover:bg-white/5 transition-colors text-sm">
+                    <td className="py-4 px-4">{new Date(record.created_at).toLocaleDateString()} {new Date(record.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
+                    <td className="py-4 px-4 text-orange-400">{record.env_score.toFixed(1)}</td>
+                    <td className="py-4 px-4 text-red-400">{record.phys_score.toFixed(1)}</td>
+                    <td className="py-4 px-4 text-accent">{((record.face_score || 0) + (record.skin_score || 0)).toFixed(1)}</td>
+                    <td className="py-4 px-4 font-bold text-white tracking-wider">{record.final_score.toFixed(1)} / 100</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </GlassCard>
+      )}
+      
       <div className="flex justify-center pt-8">
         <Button variant="outline" onClick={() => router.push('/')}>
           Return to Home

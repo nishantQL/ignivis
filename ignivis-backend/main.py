@@ -1,4 +1,5 @@
 from fastapi import FastAPI, UploadFile, File, Form, Depends, HTTPException, status, Request
+from fastapi.security import OAuth2PasswordBearer
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -43,6 +44,31 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# JWT Security Definition
+from fastapi.security import OAuth2PasswordBearer
+from jose import jwt, JWTError
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
+
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, auth.SECRET_KEY, algorithms=[auth.ALGORITHM])
+        username: str = payload.get("username")
+        if username is None:
+            raise credentials_exception
+        token_data = auth.TokenData(username=username)
+    except JWTError:
+        raise credentials_exception
+    user = db.query(models.User).filter(models.User.username == token_data.username).first()
+    if user is None:
+        raise credentials_exception
+    return user
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
@@ -190,7 +216,7 @@ def get_ai_insights(req: AiInsightsRequest):
     return generate_ai_insights(req.model_dump())
 
 @app.post("/api/final")
-async def get_final_score(req: FinalScoreRequest):
+async def get_final_score(req: FinalScoreRequest, current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
     base_score = (req.env * 0.3) + (req.phys * 0.4) + (req.face * 0.15) + (req.skin * 0.15)
     
     lifestyle_modifier = 0
@@ -216,8 +242,8 @@ async def get_final_score(req: FinalScoreRequest):
         alerts = ["Avoid outdoor exposure completely", "Elevated heat stress potential"]
         recommendations = ["Move to an air-conditioned room", "Rest immediately"]
 
-    return {
-        "final_score": round(final_score, 1),
+    payload = {
+        "final_score": round(float(final_score), 1),
         "risk_category": risk_category,
         "summary": summary,
         "alerts": alerts,
@@ -228,3 +254,32 @@ async def get_final_score(req: FinalScoreRequest):
             {"time": "Next 2-4 Hours", "action": "Avoid exertion and stay hydrated."}
         ]
     }
+
+    # Asynchronously persist to Postgres via SQLAlchemy immediately before returning
+    db_result = models.AnalysisResult(
+        user_id=current_user.id,
+        env_score=req.env,
+        phys_score=req.phys,
+        face_score=req.face,
+        skin_score=req.skin,
+        final_score=final_score
+    )
+    db.add(db_result)
+    db.commit()
+
+    return payload
+
+@app.get("/api/history")
+def get_user_history(current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    results = db.query(models.AnalysisResult).filter(models.AnalysisResult.user_id == current_user.id).order_by(models.AnalysisResult.created_at.desc()).all()
+    return [
+        {
+            "id": r.id,
+            "env_score": r.env_score,
+            "phys_score": r.phys_score,
+            "face_score": r.face_score,
+            "skin_score": r.skin_score,
+            "final_score": r.final_score,
+            "created_at": r.created_at.isoformat()
+        } for r in results
+    ]

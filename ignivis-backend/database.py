@@ -1,13 +1,22 @@
+import os
 from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
+from dotenv import load_dotenv
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./ignivis.db"
+load_dotenv()
 
-# connect_args={"check_same_thread": False} is needed only for SQLite
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL is critically missing from .env configuration.")
+
+# Remove 'sqlite' specific arguments and introduce connection pooling health checks (pre-ping)
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+    DATABASE_URL,
+    pool_pre_ping=True
 )
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()

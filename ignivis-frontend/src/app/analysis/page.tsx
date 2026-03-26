@@ -181,10 +181,13 @@ export default function AnalysisPage() {
       const physData = await physRes.json()
       const finalPhysScore = physData.phys_score
 
-      // 2. Predict Final Intelligence
+      const token = localStorage.getItem("ignivis_token")
       const finalRes = await fetch("http://localhost:8000/api/final", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({
           env: scores.env || 0.0,
           phys: finalPhysScore || 0.0,
