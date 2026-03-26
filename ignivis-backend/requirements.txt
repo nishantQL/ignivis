@@ -1,11 +1,19 @@
 fastapi
 uvicorn
 sqlalchemy
+<<<<<<< HEAD
 pydantic[email]
+=======
+pydantic
+>>>>>>> c12f622f3839b976beaeec2798cb1e45cf46e449
 python-multipart
 passlib[bcrypt]
 python-jose
 opencv-python-headless
+<<<<<<< HEAD
+=======
+mediapipe
+>>>>>>> c12f622f3839b976beaeec2798cb1e45cf46e449
 scikit-learn
 numpy
 pandas

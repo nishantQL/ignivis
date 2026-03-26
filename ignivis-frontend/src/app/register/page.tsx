@@ -7,7 +7,10 @@ import { Button } from "@/components/ui/Button"
 import { GradientText } from "@/components/ui/GradientText"
 import { useRouter } from "next/navigation"
 import { Mail, Lock, User, ArrowRight, ShieldAlert } from "lucide-react"
+<<<<<<< HEAD
 import { API_URL } from "@/lib/constants"
+=======
+>>>>>>> c12f622f3839b976beaeec2798cb1e45cf46e449
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -21,7 +24,11 @@ export default function RegisterPage() {
     setError(null)
     
     try {
+<<<<<<< HEAD
       const res = await fetch(`${API_URL}/api/auth/register`, {
+=======
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/auth/register`, {
+>>>>>>> c12f622f3839b976beaeec2798cb1e45cf46e449
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData)

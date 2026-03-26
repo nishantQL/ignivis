@@ -7,7 +7,10 @@ import { Button } from "@/components/ui/Button"
 import { GradientText } from "@/components/ui/GradientText"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Mail, Lock, ArrowRight, ShieldAlert, CheckCircle2 } from "lucide-react"
+<<<<<<< HEAD
 import { API_URL } from "@/lib/constants"
+=======
+>>>>>>> c12f622f3839b976beaeec2798cb1e45cf46e449
 
 export default function LoginPage() {
   const router = useRouter()
@@ -31,7 +34,11 @@ export default function LoginPage() {
     setError(null)
     
     try {
+<<<<<<< HEAD
       const res = await fetch(`${API_URL}/api/auth/login`, {
+=======
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/auth/login`, {
+>>>>>>> c12f622f3839b976beaeec2798cb1e45cf46e449
         method: "POST",
         headers: { "Content-Type": "application/json" },
         // The backend expects UserCreate shape for simplicity
