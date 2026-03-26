@@ -6,7 +6,26 @@ import { MetricGauge } from "@/components/ui/MetricGauge"
 import { GlassCard } from "@/components/ui/GlassCard"
 import { Button } from "@/components/ui/Button"
 import { useRouter } from "next/navigation"
-import { AlertCircle, CheckCircle2, CloudLightning, Droplets, HeartPulse, ShieldAlert, BrainCircuit, ScanFace, MapPin, Activity } from "lucide-react"
+import {
+  Activity,
+  Thermometer,
+  Wind,
+  Droplets,
+  MapPin,
+  Clock,
+  Calendar,
+  AlertTriangle,
+  BrainCircuit,
+  ChevronRight,
+  Home,
+  ShieldAlert,
+  AlertCircle,
+  CheckCircle2,
+  CloudLightning,
+  HeartPulse,
+  ScanFace
+} from "lucide-react"
+import { API_URL } from "@/lib/constants"
 
 // Expected backend response structure
 interface FinalResponse {
@@ -65,7 +84,7 @@ export default function DashboardPage() {
         })
 
         // Fetch dynamic AI reasoning based on raw scores
-        const aiRes = await fetch("http://localhost:8000/api/ai-insights", {
+        const aiRes = await fetch(`${API_URL}/api/ai-insights`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -96,7 +115,7 @@ export default function DashboardPage() {
         // Fetch User History
         try {
             const token = localStorage.getItem("ignivis_token");
-            const histRes = await fetch("http://localhost:8000/api/history", {
+            const histRes = await fetch(`${API_URL}/api/history`, {
             headers: { "Authorization": `Bearer ${token}` }
           })
           if (histRes.ok) {

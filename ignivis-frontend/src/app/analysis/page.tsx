@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button"
 import { GlassCard } from "@/components/ui/GlassCard"
 import Webcam from "react-webcam"
 import { MapPin, Camera, Activity, User, ArrowRight, Loader2 } from "lucide-react"
+import { API_URL } from "@/lib/constants"
 
 export default function AnalysisPage() {
   const router = useRouter()
@@ -67,7 +68,7 @@ export default function AnalysisPage() {
             const realTemp = meteoData.current_weather?.temperature || 35.0
 
             // 2. Predict Environment Score
-            const envRes = await fetch("http://localhost:8000/api/environment", {
+            const envRes = await fetch(`${API_URL}/api/environment`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
@@ -129,7 +130,7 @@ export default function AnalysisPage() {
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), 15000)
 
-        const faceRes = await fetch("http://localhost:8000/api/face", {
+        const faceRes = await fetch(`${API_URL}/api/face`, {
           method: "POST",
           body: fd,
           signal: controller.signal
@@ -168,7 +169,7 @@ export default function AnalysisPage() {
     setLoading(true)
     try {
       // 1. Predict Physiological Score
-      const physRes = await fetch("http://localhost:8000/api/physiological", {
+      const physRes = await fetch(`${API_URL}/api/physiological`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -182,7 +183,7 @@ export default function AnalysisPage() {
       const finalPhysScore = physData.phys_score
 
       const token = localStorage.getItem("ignivis_token")
-      const finalRes = await fetch("http://localhost:8000/api/final", {
+      const finalRes = await fetch(`${API_URL}/api/final`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
