@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #05050a;
+  --color-foreground: #ededed;
+  
+  --color-primary: #ff4500;
+  --color-primary-dark: #cc3700;
+  --color-accent: #3b82f6;
+  --color-accent-dark: #2563eb;
+
+  --color-surface: rgba(20, 20, 25, 0.6);
+  --color-surface-hover: rgba(30, 30, 40, 0.8);
+
+  --animate-pulse-slow: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+:root {
+  --background: #05050a;
+  --foreground: #ededed;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-outfit), sans-serif;
+  overflow-x: hidden;
+  background-image: 
+    radial-gradient(circle at 15% 50%, rgba(255, 69, 0, 0.08), transparent 50%),
+    radial-gradient(circle at 85% 30%, rgba(59, 130, 246, 0.08), transparent 50%);
+  background-attachment: fixed;
+}
+
+/* Glassmorphism utilities */
+@utility glass {
+  background: var(--color-surface);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+@utility glass-hover {
+  background: var(--color-surface-hover);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+@utility text-gradient {
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-image: linear-gradient(to right, var(--color-primary), #ff8c00);
+}
+
+@utility text-gradient-accent {
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-image: linear-gradient(to right, var(--color-accent), #8b5cf6);
+}
+
+/* Base styles for scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #05050a;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 69, 0, 0.3);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 69, 0, 0.5);
+}
