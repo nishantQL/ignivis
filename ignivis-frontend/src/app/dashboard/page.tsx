@@ -6,7 +6,6 @@ import { MetricGauge } from "@/components/ui/MetricGauge"
 import { GlassCard } from "@/components/ui/GlassCard"
 import { Button } from "@/components/ui/Button"
 import { useRouter } from "next/navigation"
-<<<<<<< HEAD
 import {
   Activity,
   Thermometer,
@@ -27,9 +26,6 @@ import {
   ScanFace
 } from "lucide-react"
 import { API_URL } from "@/lib/constants"
-=======
-import { AlertCircle, CheckCircle2, CloudLightning, Droplets, HeartPulse, ShieldAlert, BrainCircuit, ScanFace, MapPin, Activity } from "lucide-react"
->>>>>>> c12f622f3839b976beaeec2798cb1e45cf46e449
 
 // Expected backend response structure
 interface FinalResponse {
@@ -88,11 +84,7 @@ export default function DashboardPage() {
         })
 
         // Fetch dynamic AI reasoning based on raw scores
-<<<<<<< HEAD
         const aiRes = await fetch(`${API_URL}/api/ai-insights`, {
-=======
-        const aiRes = await fetch("http://localhost:8000/api/ai-insights", {
->>>>>>> c12f622f3839b976beaeec2798cb1e45cf46e449
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -122,12 +114,8 @@ export default function DashboardPage() {
 
         // Fetch User History
         try {
-            const token = localStorage.getItem("ignivis_token");
-<<<<<<< HEAD
-            const histRes = await fetch(`${API_URL}/api/history`, {
-=======
-            const histRes = await fetch("http://localhost:8000/api/history", {
->>>>>>> c12f622f3839b976beaeec2798cb1e45cf46e449
+          const token = localStorage.getItem("ignivis_token");
+          const histRes = await fetch(`${API_URL}/api/history`, {
             headers: { "Authorization": `Bearer ${token}` }
           })
           if (histRes.ok) {
@@ -348,8 +336,8 @@ export default function DashboardPage() {
       {history.length > 0 && (
         <GlassCard className="mt-8">
           <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-             <Activity className="text-green-400 w-6 h-6" /> 
-             Historical Heat Risk Trend
+            <Activity className="text-green-400 w-6 h-6" />
+            Historical Heat Risk Trend
           </h3>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
@@ -365,7 +353,7 @@ export default function DashboardPage() {
               <tbody>
                 {history.map((record) => (
                   <tr key={record.id} className="border-b border-white/5 hover:bg-white/5 transition-colors text-sm">
-                    <td className="py-4 px-4">{new Date(record.created_at).toLocaleDateString()} {new Date(record.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
+                    <td className="py-4 px-4">{new Date(record.created_at).toLocaleDateString()} {new Date(record.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
                     <td className="py-4 px-4 text-orange-400">{record.env_score.toFixed(1)}</td>
                     <td className="py-4 px-4 text-red-400">{record.phys_score.toFixed(1)}</td>
                     <td className="py-4 px-4 text-accent">{((record.face_score || 0) + (record.skin_score || 0)).toFixed(1)}</td>
@@ -377,7 +365,7 @@ export default function DashboardPage() {
           </div>
         </GlassCard>
       )}
-      
+
       <div className="flex justify-center pt-8">
         <Button variant="outline" onClick={() => router.push('/')}>
           Return to Home

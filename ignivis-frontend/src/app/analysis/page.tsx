@@ -7,10 +7,7 @@ import { Button } from "@/components/ui/Button"
 import { GlassCard } from "@/components/ui/GlassCard"
 import Webcam from "react-webcam"
 import { MapPin, Camera, Activity, User, ArrowRight, Loader2 } from "lucide-react"
-<<<<<<< HEAD
 import { API_URL } from "@/lib/constants"
-=======
->>>>>>> c12f622f3839b976beaeec2798cb1e45cf46e449
 
 export default function AnalysisPage() {
   const router = useRouter()
@@ -22,7 +19,7 @@ export default function AnalysisPage() {
       router.push("/login")
     }
   }, [router])
-  
+
   // Unified Form State
   const [formData, setFormData] = useState({
     age: 30,
@@ -61,9 +58,9 @@ export default function AnalysisPage() {
         async (position) => {
           const lat = position.coords.latitude
           const lon = position.coords.longitude
-          
+
           setFormData(prev => ({ ...prev, latitude: lat, longitude: lon }))
-          
+
           try {
             // 1. Get Live Temperature
             const meteoRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
@@ -71,11 +68,7 @@ export default function AnalysisPage() {
             const realTemp = meteoData.current_weather?.temperature || 35.0
 
             // 2. Predict Environment Score
-<<<<<<< HEAD
             const envRes = await fetch(`${API_URL}/api/environment`, {
-=======
-            const envRes = await fetch("http://localhost:8000/api/environment", {
->>>>>>> c12f622f3839b976beaeec2798cb1e45cf46e449
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
@@ -86,7 +79,7 @@ export default function AnalysisPage() {
               })
             })
             const envData = await envRes.json()
-            
+
             setScores(prev => ({ ...prev, env: envData.env_score }))
             setLoading(false)
             nextStep()
@@ -111,15 +104,15 @@ export default function AnalysisPage() {
 
   // STEP 3: Face Scan ML
   const webcamRef = useRef<Webcam>(null)
-  
+
   const captureFace = useCallback(async () => {
     const imageSrc = webcamRef.current?.getScreenshot()
     if (imageSrc) {
       setFormData(prev => ({ ...prev, faceImageBase64: imageSrc }))
-      
+
       try {
         setLoading(true)
-        
+
         // 1. Manually extract Base64 to Blob to prevent Browser Promise Freezing
         const base64Data = imageSrc.split(',')[1]
         const byteCharacters = atob(base64Data)
@@ -129,41 +122,37 @@ export default function AnalysisPage() {
         }
         const byteArray = new Uint8Array(byteNumbers)
         const blob = new Blob([byteArray], { type: 'image/jpeg' })
-        
+
         const fd = new FormData()
         fd.append("file", blob, "scan.jpg")
-        
+
         // 2. Add AbortController to force throw an error if the connection hangs for more than 15s
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), 15000)
 
-<<<<<<< HEAD
         const faceRes = await fetch(`${API_URL}/api/face`, {
-=======
-        const faceRes = await fetch("http://localhost:8000/api/face", {
->>>>>>> c12f622f3839b976beaeec2798cb1e45cf46e449
           method: "POST",
           body: fd,
           signal: controller.signal
         })
-        
+
         clearTimeout(timeoutId)
-        
+
         if (!faceRes.ok) {
-           throw new Error(`API Error: ${faceRes.status}`)
+          throw new Error(`API Error: ${faceRes.status}`)
         }
-        
+
         const faceData = await faceRes.json()
-        setScores(prev => ({ 
-          ...prev, 
+        setScores(prev => ({
+          ...prev,
           face: faceData.face_score,
           skin: faceData.skin_score,
           faceTemp: faceData.face_temp || 37.0
         }))
-        
+
         // Auto-update body temp slider from face_temp inference
         setFormData(prev => ({ ...prev, bodyTemperature: faceData.face_temp || 37.0 }))
-        
+
         setLoading(false)
         setTimeout(() => nextStep(), 1500)
 
@@ -180,11 +169,7 @@ export default function AnalysisPage() {
     setLoading(true)
     try {
       // 1. Predict Physiological Score
-<<<<<<< HEAD
       const physRes = await fetch(`${API_URL}/api/physiological`, {
-=======
-      const physRes = await fetch("http://localhost:8000/api/physiological", {
->>>>>>> c12f622f3839b976beaeec2798cb1e45cf46e449
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -193,18 +178,14 @@ export default function AnalysisPage() {
         })
       })
       if (!physRes.ok) throw new Error(`Phys API Failed: ${physRes.status}`)
-      
+
       const physData = await physRes.json()
       const finalPhysScore = physData.phys_score
 
       const token = localStorage.getItem("ignivis_token")
-<<<<<<< HEAD
       const finalRes = await fetch(`${API_URL}/api/final`, {
-=======
-      const finalRes = await fetch("http://localhost:8000/api/final", {
->>>>>>> c12f622f3839b976beaeec2798cb1e45cf46e449
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
@@ -219,16 +200,12 @@ export default function AnalysisPage() {
           gender: formData.gender || "unknown"
         })
       })
-<<<<<<< HEAD
       if (!finalRes.ok) {
         const errorData = await finalRes.json().catch(() => ({}));
         console.error("Final API 422 Error Detailed:", errorData);
         throw new Error(`Final API Failed: ${finalRes.status}. Details: ${JSON.stringify(errorData.detail || errorData)}`);
       }
-=======
-      if (!finalRes.ok) throw new Error(`Final API Failed: ${finalRes.status}`)
->>>>>>> c12f622f3839b976beaeec2798cb1e45cf46e449
-      
+
       const finalData = await finalRes.json()
 
       // 3. Save Payload for Dashboard
@@ -243,10 +220,10 @@ export default function AnalysisPage() {
         age: formData.age,
         gender: formData.gender
       }
-      
+
       localStorage.setItem("ignivis_analysis", JSON.stringify(dashboardPayload))
       router.push("/dashboard")
-      
+
     } catch (error) {
       console.error(error)
       alert("Failed to aggregate intelligence. " + error)
@@ -257,7 +234,7 @@ export default function AnalysisPage() {
   // --- Step Rendering ---
 
   const renderStepIcon = () => {
-    switch(step) {
+    switch (step) {
       case 1: return <User className="w-8 h-8 text-primary" />
       case 2: return <MapPin className="w-8 h-8 text-purple-500" />
       case 3: return <Camera className="w-8 h-8 text-accent" />
@@ -272,7 +249,7 @@ export default function AnalysisPage() {
       <div className="absolute top-0 w-full h-full bg-grid-white/[0.02] bg-[size:32px]"></div>
 
       <div className="max-w-xl w-full relative z-10">
-        
+
         {/* Progress header */}
         <div className="mb-8 flex flex-col items-center">
           <div className="flex gap-2 w-full max-w-sm mb-6">
@@ -298,7 +275,7 @@ export default function AnalysisPage() {
             transition={{ duration: 0.3 }}
           >
             <GlassCard className="p-8 md:p-10">
-              
+
               {/* STEP 1: USER DETAILS */}
               {step === 1 && (
                 <div className="space-y-6">
@@ -306,23 +283,23 @@ export default function AnalysisPage() {
                     <h2 className="text-2xl font-bold mb-2">Personal Details</h2>
                     <p className="text-foreground/60 text-sm">Basic information to contextualize your physiological markers.</p>
                   </div>
-                  
+
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Age: {formData.age}</label>
-                      <input 
-                        type="range" min="10" max="100" 
+                      <input
+                        type="range" min="10" max="100"
                         value={formData.age}
-                        onChange={(e) => setFormData({...formData, age: Number(e.target.value)})}
+                        onChange={(e) => setFormData({ ...formData, age: Number(e.target.value) })}
                         className="w-full accent-primary"
                       />
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium mb-1">Gender</label>
-                      <select 
+                      <select
                         value={formData.gender}
-                        onChange={(e) => setFormData({...formData, gender: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
                         className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:ring-2 focus:ring-primary focus:outline-none"
                       >
                         <option value="male" className="bg-zinc-900 text-white">Male</option>
@@ -333,20 +310,20 @@ export default function AnalysisPage() {
 
                     <div>
                       <label className="block text-sm font-medium mb-1">Water Intake Today: {formData.waterIntake} Liters</label>
-                      <input 
+                      <input
                         type="range" min="0" max="6" step="0.5"
                         value={formData.waterIntake}
-                        onChange={(e) => setFormData({...formData, waterIntake: Number(e.target.value)})}
+                        onChange={(e) => setFormData({ ...formData, waterIntake: Number(e.target.value) })}
                         className="w-full accent-primary"
                       />
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium mb-1">Sleep Last Night: {formData.sleepDuration} Hours</label>
-                      <input 
+                      <input
                         type="range" min="0" max="12" step="0.5"
                         value={formData.sleepDuration}
-                        onChange={(e) => setFormData({...formData, sleepDuration: Number(e.target.value)})}
+                        onChange={(e) => setFormData({ ...formData, sleepDuration: Number(e.target.value) })}
                         className="w-full accent-primary"
                       />
                     </div>
@@ -365,7 +342,7 @@ export default function AnalysisPage() {
                     <h2 className="text-2xl font-bold mb-2">Climate Intelligence</h2>
                     <p className="text-foreground/60 text-sm">We need your location to access live API data for Temperature, Humidity, AQI, and UV Index.</p>
                   </div>
-                  
+
                   <div className="py-8 flex justify-center">
                     <div className="relative">
                       <div className="w-24 h-24 rounded-full bg-purple-500/20 flex items-center justify-center animate-pulse-slow">
@@ -374,9 +351,9 @@ export default function AnalysisPage() {
                     </div>
                   </div>
 
-                  <Button 
-                    variant="secondary" 
-                    className="w-full" 
+                  <Button
+                    variant="secondary"
+                    className="w-full"
                     onClick={requestLocation}
                     isLoading={loading}
                   >
@@ -400,10 +377,10 @@ export default function AnalysisPage() {
                     <h2 className="text-2xl font-bold mb-2">Face Stress Scan</h2>
                     <p className="text-foreground/60 text-sm">Using deep learning to detect visual markers of exhaustion.</p>
                   </div>
-                  
+
                   <div className="relative rounded-2xl overflow-hidden border-2 border-white/10 bg-black aspect-video flex items-center justify-center auto-cols-auto">
                     {formData.faceImageBase64 ? (
-                       // eslint-disable-next-line @next/next/no-img-element
+                      // eslint-disable-next-line @next/next/no-img-element
                       <img src={formData.faceImageBase64} alt="Captured face" className="w-full h-full object-cover opacity-80" />
                     ) : (
                       <Webcam
@@ -414,16 +391,16 @@ export default function AnalysisPage() {
                         className="w-full h-full object-cover"
                       />
                     )}
-                    
+
                     {formData.faceImageBase64 && (
                       <div className="absolute inset-0 bg-accent/20 flex flex-col items-center justify-center backdrop-blur-sm">
                         <Loader2 className="w-10 h-10 text-white animate-spin mb-4" />
                         <span className="font-semibold text-white tracking-widest">ANALYZING IN OPENCV...</span>
                       </div>
                     )}
-                    
+
                     {!formData.faceImageBase64 && (
-                       <div className="absolute inset-x-0 top-1/2 h-[2px] bg-accent/50 animate-pulse-slow w-full" style={{boxShadow: "0 0 10px #3b82f6"}}></div>
+                      <div className="absolute inset-x-0 top-1/2 h-[2px] bg-accent/50 animate-pulse-slow w-full" style={{ boxShadow: "0 0 10px #3b82f6" }}></div>
                     )}
                   </div>
 
@@ -434,17 +411,17 @@ export default function AnalysisPage() {
                   ) : (
                     <div className="flex gap-4 w-full">
                       <Button variant="outline" className="flex-1 border-white/20 hover:bg-white/10" disabled={loading} onClick={() => {
-                        setFormData(prev => ({...prev, faceImageBase64: null}))
-                        setScores(prev => ({...prev, face: 0, skin: 0, faceTemp: 37.0}))
+                        setFormData(prev => ({ ...prev, faceImageBase64: null }))
+                        setScores(prev => ({ ...prev, face: 0, skin: 0, faceTemp: 37.0 }))
                       }}>
-                         Retake Photo
+                        Retake Photo
                       </Button>
                       <Button disabled className="flex-1 bg-green-500/20 text-green-400 border-none cursor-not-allowed">
                         {loading ? "Processing..." : "Captured ✓"}
                       </Button>
                     </div>
                   )}
-                  
+
                   {scores.face > 0 && (
                     <div className="text-sm text-primary font-mono mt-2 animate-pulse">
                       ML Scanned Face Heat: {Number(scores.faceTemp || 37.0).toFixed(1)} Unit
@@ -469,24 +446,24 @@ export default function AnalysisPage() {
                     <h2 className="text-2xl font-bold mb-2">Physiological Markers</h2>
                     <p className="text-foreground/60 text-sm">Input your current body temperature and resting heart rate. (Auto-adjusted if Face Scan completed)</p>
                   </div>
-                  
+
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Body Temperature (°C): {Number(formData.bodyTemperature || 37.0).toFixed(1)}</label>
-                      <input 
+                      <input
                         type="range" min="30.0" max="45.0" step="0.1"
                         value={formData.bodyTemperature}
-                        onChange={(e) => setFormData({...formData, bodyTemperature: Number(e.target.value)})}
+                        onChange={(e) => setFormData({ ...formData, bodyTemperature: Number(e.target.value) })}
                         className="w-full accent-red-500"
                       />
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium mb-1">Heart rate (BPM): {formData.heartRate}</label>
-                      <input 
+                      <input
                         type="range" min="40" max="200" step="1"
                         value={formData.heartRate}
-                        onChange={(e) => setFormData({...formData, heartRate: Number(e.target.value)})}
+                        onChange={(e) => setFormData({ ...formData, heartRate: Number(e.target.value) })}
                         className="w-full accent-red-500"
                       />
                     </div>
@@ -496,8 +473,8 @@ export default function AnalysisPage() {
                     <Button variant="outline" disabled={loading} onClick={prevStep} className="flex-none px-6 text-white/80">
                       Back
                     </Button>
-                    <Button 
-                      className="flex-1 bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-500 hover:to-orange-400 text-white" 
+                    <Button
+                      className="flex-1 bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-500 hover:to-orange-400 text-white"
                       onClick={submitAnalysis}
                       isLoading={loading}
                     >

@@ -7,10 +7,7 @@ import { Button } from "@/components/ui/Button"
 import { GradientText } from "@/components/ui/GradientText"
 import { useRouter } from "next/navigation"
 import { Mail, Lock, User, ArrowRight, ShieldAlert } from "lucide-react"
-<<<<<<< HEAD
 import { API_URL } from "@/lib/constants"
-=======
->>>>>>> c12f622f3839b976beaeec2798cb1e45cf46e449
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -22,24 +19,20 @@ export default function RegisterPage() {
     e.preventDefault()
     setLoading(true)
     setError(null)
-    
+
     try {
-<<<<<<< HEAD
       const res = await fetch(`${API_URL}/api/auth/register`, {
-=======
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/auth/register`, {
->>>>>>> c12f622f3839b976beaeec2798cb1e45cf46e449
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData)
       })
-      
+
       const data = await res.json()
-      
+
       if (!res.ok) {
         throw new Error(data.detail || "Failed to register")
       }
-      
+
       // Successfully registered, now login
       router.push("/login?registered=true")
     } catch (err: any) {
@@ -54,7 +47,7 @@ export default function RegisterPage() {
       {/* Background glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary/20 rounded-full blur-[100px] pointer-events-none z-0"></div>
 
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md relative z-10"
@@ -76,11 +69,11 @@ export default function RegisterPage() {
               <label className="block text-sm font-medium mb-1 text-foreground/80">Username</label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/40" />
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   required
                   value={formData.username}
-                  onChange={e => setFormData({...formData, username: e.target.value})}
+                  onChange={e => setFormData({ ...formData, username: e.target.value })}
                   className="w-full bg-white/5 border border-white/10 rounded-lg py-3 pl-10 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
                   placeholder="agent_007"
                 />
@@ -91,11 +84,11 @@ export default function RegisterPage() {
               <label className="block text-sm font-medium mb-1 text-foreground/80">Email</label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/40" />
-                <input 
-                  type="email" 
+                <input
+                  type="email"
                   required
                   value={formData.email}
-                  onChange={e => setFormData({...formData, email: e.target.value})}
+                  onChange={e => setFormData({ ...formData, email: e.target.value })}
                   className="w-full bg-white/5 border border-white/10 rounded-lg py-3 pl-10 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
                   placeholder="agent@example.com"
                 />
@@ -106,11 +99,11 @@ export default function RegisterPage() {
               <label className="block text-sm font-medium mb-1 text-foreground/80">Password</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/40" />
-                <input 
-                  type="password" 
+                <input
+                  type="password"
                   required
                   value={formData.password}
-                  onChange={e => setFormData({...formData, password: e.target.value})}
+                  onChange={e => setFormData({ ...formData, password: e.target.value })}
                   className="w-full bg-white/5 border border-white/10 rounded-lg py-3 pl-10 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
                   placeholder="••••••••"
                 />
