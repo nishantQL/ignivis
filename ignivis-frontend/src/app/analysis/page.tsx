@@ -200,7 +200,11 @@ export default function AnalysisPage() {
           gender: formData.gender || "unknown"
         })
       })
-      if (!finalRes.ok) throw new Error(`Final API Failed: ${finalRes.status}`)
+      if (!finalRes.ok) {
+        const errorData = await finalRes.json().catch(() => ({}));
+        console.error("Final API 422 Error Detailed:", errorData);
+        throw new Error(`Final API Failed: ${finalRes.status}. Details: ${JSON.stringify(errorData.detail || errorData)}`);
+      }
       
       const finalData = await finalRes.json()
 

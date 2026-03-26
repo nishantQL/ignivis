@@ -83,35 +83,35 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     )
 
 class EnvironmentRequest(BaseModel):
-    temp: float
-    humidity: float
-    uv: float
-    aqi: float
+    temp: float = 35.0
+    humidity: float = 60.0
+    uv: float = 5.0
+    aqi: float = 80.0
 
 class PhysiologicalRequest(BaseModel):
-    body_temp: float
-    heart_rate: int
+    body_temp: float = 37.0
+    heart_rate: int = 75
 
 class FinalScoreRequest(BaseModel):
-    env: float
-    phys: float
-    face: float
-    skin: float
-    sleep: int
-    water: float
-    age: int
-    gender: str
+    env: float = 0.0
+    phys: float = 0.0
+    face: float = 0.0
+    skin: float = 0.0
+    sleep: int = 7
+    water: float = 2.0
+    age: int = 30
+    gender: str = "unknown"
 
 class AiInsightsRequest(BaseModel):
-    final_score: float
-    env_score: float
-    phys_score: float
-    face_score: float
-    skin_score: float
-    sleep: int
-    water: float
-    age: int
-    gender: str
+    final_score: float = 0.0
+    env_score: float = 0.0
+    phys_score: float = 0.0
+    face_score: float = 0.0
+    skin_score: float = 0.0
+    sleep: int = 7
+    water: float = 2.0
+    age: int = 30
+    gender: str = "unknown"
 
 
 @app.get("/")
