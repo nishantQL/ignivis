@@ -12,3 +12,4 @@ numpy
 opencv-python-headless
 gdown
 python-multipart
+email-validator
