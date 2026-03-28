@@ -4,7 +4,7 @@ sqlalchemy
 psycopg2-binary
 google-generativeai
 python-dotenv
-jose
+python-jose[cryptography]
 passlib[bcrypt]
 scikit-learn
 joblib
