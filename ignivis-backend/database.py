@@ -8,12 +8,22 @@ load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-if not DATABASE_URL:
-    raise ValueError("DATABASE_URL is critically missing from .env configuration.")
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-# Remove 'sqlite' specific arguments and introduce connection pooling health checks (pre-ping)
+# --- DATABASE LOGIC ---
+if DATABASE_URL:
+    # SQLAlchemy 1.4+ deprecated 'postgres://' for 'postgresql://'
+    if DATABASE_URL.startswith("postgres://"):
+        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+else:
+    # 🚨 Warning: Render will exit with status 1 if we try to connect without a URL.
+    # We log this clearly for the user in the Render Console.
+    print("!!! [FATAL ERROR] DATABASE_URL is not set in the environment variables.")
+    print("!!! Please set it in the Render Dashboard (Settings -> Environment Variables).")
+
+# Setup engine with fallback to avoid crash during build if URL is missing
 engine = create_engine(
-    DATABASE_URL,
+    DATABASE_URL or "sqlite:///./temp_ignivis_build.db", 
     pool_pre_ping=True
 )
 

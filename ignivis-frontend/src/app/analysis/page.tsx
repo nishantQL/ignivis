@@ -202,7 +202,7 @@ export default function AnalysisPage() {
       })
       if (!finalRes.ok) {
         const errorData = await finalRes.json().catch(() => ({}));
-        console.error("Final API 422 Error Detailed:", errorData);
+        console.error("Final API Error Detailed:", errorData);
         throw new Error(`Final API Failed: ${finalRes.status}. Details: ${JSON.stringify(errorData.detail || errorData)}`);
       }
 

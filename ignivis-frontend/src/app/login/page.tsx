@@ -34,8 +34,7 @@ export default function LoginPage() {
       const res = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // The backend expects UserCreate shape for simplicity
-        body: JSON.stringify({ email: formData.email, password: formData.password, username: "login_attempt" })
+        body: JSON.stringify({ email: formData.email, password: formData.password })
       })
 
       const data = await res.json()

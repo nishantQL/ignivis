@@ -44,23 +44,36 @@ app.add_middleware(
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
     try:
-        from jose import jwt
+        from jose import jwt, JWTError
         payload = jwt.decode(token, auth.SECRET_KEY, algorithms=[auth.ALGORITHM])
         username: str = payload.get("username")
         if username is None:
-            raise credentials_exception
-    except Exception:
-        raise credentials_exception
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token: missing username",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Session expired or invalid token. Please log in again.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Authentication error: {str(e)}",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
         
     user = db.query(models.User).filter(models.User.username == username).first()
     if user is None:
-        raise credentials_exception
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User account no longer exists in current database.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     return user
 
 # Validation error handler
@@ -75,6 +88,10 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 app.include_router(predict.router, prefix="/api", tags=["Predictive Models"])
 
 # Request models
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
 class FinalScoreRequest(BaseModel):
     env: float = 0.0
     phys: float = 0.0
@@ -119,10 +136,10 @@ def register(user: auth.UserCreate, db: Session = Depends(get_db)):
     return {"message": "User registered successfully"}
 
 @app.post("/api/auth/login")
-def login(user: auth.UserCreate, db: Session = Depends(get_db)):
+def login(user: LoginRequest, db: Session = Depends(get_db)):
     db_user = db.query(models.User).filter(models.User.email == user.email).first()
     if not db_user or not auth.verify_password(user.password, db_user.hashed_password):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+        raise HTTPException(status_code=401, detail="Invalid email or password")
     
     access_token = auth.create_access_token(data={"username": db_user.username})
     return {"access_token": access_token, "token_type": "bearer"}
